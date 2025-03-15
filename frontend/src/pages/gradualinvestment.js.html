@@ -1,0 +1,54 @@
+import React, { useState, useEffect } from "react"; const GradualInvestment = ()
+=> { // State variables for bank balance, threshold balance, and investment
+message const [bankBalance, setBankBalance] = useState(10500.00); const
+[thresholdBalance, setThresholdBalance] = useState(10000.00); const
+[investmentMessage, setInvestmentMessage] = useState("No automatic transfer
+yet."); // Function to handle the "Invest Account" button click const
+linkToInvestmentAccount = () => { let investmentAmount = 0.00; // Check if bank
+balance is greater than the threshold balance if (bankBalance >
+thresholdBalance) { investmentAmount = bankBalance - thresholdBalance;
+setInvestmentMessage(`Transferred $${investmentAmount.toFixed(2)} to Investment
+Account.`); setBankBalance(thresholdBalance); // Update the bank balance after
+transfer } else { setInvestmentMessage("Insufficient funds for automatic
+transfer."); } // Redirect to the Investment Account Page window.location.href =
+"invest_account.html"; }; // Function to handle the "Back to Home" button click
+const goBack = () => { window.location.href = "home.html"; }; // UseEffect to
+load balance and threshold from sessionStorage on page load useEffect(() => {
+const storedBalance = parseFloat(sessionStorage.getItem("balance")) || 10500.0;
+const storedThresholdBalance =
+parseFloat(sessionStorage.getItem("thresholdBalance")) || 10000.0;
+setBankBalance(storedBalance); setThresholdBalance(storedThresholdBalance); //
+Update the displayed balance in the DOM
+document.getElementById("bankBalance").innerText =
+`$${storedBalance.toFixed(2)}`;
+document.getElementById("thresholdBalance").innerText =
+`$${storedThresholdBalance.toFixed(2)}`; }, []); // Empty dependency array means
+this effect runs only once when the component mounts return (
+<div className="investment-container">
+  <h1>Gradual Investment</h1>
+
+  {/* Display Balances */}
+  <div className="balance-section">
+    <div className="balance-box">
+      <h2>Bank Balance</h2>
+      <p id="bankBalance">${bankBalance.toFixed(2)}</p>
+    </div>
+    <div className="balance-box">
+      <h2>Threshold Balance</h2>
+      <p id="thresholdBalance">${thresholdBalance.toFixed(2)}</p>
+    </div>
+  </div>
+
+  {/* Investment Transfer Message */}
+  <div className="transfer-box">
+    <h2>Investment Account</h2>
+    <p id="investmentMessage">{investmentMessage}</p>
+  </div>
+
+  {/* Action Buttons */}
+  <button className="action-btn" onClick="{linkToInvestmentAccount}">
+    Invest Account
+  </button>
+  <button className="action-btn" onClick="{goBack}">Back to Home</button>
+</div>
+); }; export default GradualInvestment;

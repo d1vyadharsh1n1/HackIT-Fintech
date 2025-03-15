@@ -12,7 +12,9 @@ import Register from "./pages/Register";
 import RiskAssessment from "./pages/RiskAssessment";
 import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
-import InvestmentDashboard from "./pages/InvestmentDashboard"; // New Investment Page
+import InvestmentDashboard from "./pages/GradualInvestment"; // New Investment Page
+import InvisibleInvestment from "./pages/InvisibleInvestment"; // New Invisible Investment Page
+import Home from "./pages/Dashboard"; // Add Home component if you have one
 import "./index.css";
 
 const App = () => {
@@ -142,6 +144,12 @@ const App = () => {
                 )
               }
             />
+            <Route
+              path="/invisible-investment"
+              element={<InvisibleInvestment />}
+            />
+            <Route path="/" element={<Home />} />{" "}
+            {/* Ensure Home is at the correct position */}
           </Routes>
         </div>
       </div>

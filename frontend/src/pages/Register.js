@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./styles.css"; // Adjust the path accordingly if you place it in a different folder
 
 const Register = () => {
   const [name, setName] = useState("");

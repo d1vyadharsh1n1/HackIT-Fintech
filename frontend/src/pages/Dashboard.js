@@ -1,41 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Chatbot from "./Chatbot";
+import "./styles.css"; // Adjust the path accordingly if you place it in a different folder
 
 const Dashboard = () => {
   const [showChatbot, setShowChatbot] = useState(false);
   const [balance, setBalance] = useState(0);
+  const [thresholdBalance, setThresholdBalance] = useState(0);
+  const [amountToInvest, setAmountToInvest] = useState(0);
   const [bankName, setBankName] = useState("");
   const navigate = useNavigate();
 
+  // Example use of setAmountToInvest in the handleBankIntegration function
   const handleBankIntegration = () => {
     const userBankName = prompt("Enter your Bank Name:");
     const userBalance = prompt("Enter your Account Balance:");
-    if (userBankName && userBalance) {
+    const userThresholdBalance = prompt("Enter your Threshold Balance:");
+    const userAmountToInvest = prompt("Enter the Amount to Invest:"); // Added input
+    if (
+      userBankName &&
+      userBalance &&
+      userThresholdBalance &&
+      userAmountToInvest
+    ) {
       setBankName(userBankName);
       setBalance(parseFloat(userBalance));
+      setThresholdBalance(parseFloat(userThresholdBalance));
+      setAmountToInvest(parseFloat(userAmountToInvest)); // Set amount to invest
     }
   };
 
-  const handleGradualInvestment = () => {
-    if (balance === 0) {
-      alert("Please integrate your bank account first.");
-      return;
-    }
+  useEffect(() => {
+    // If bank data is available in sessionStorage or localStorage, use that.
+    const storedBalance = sessionStorage.getItem("balance");
+    const storedBankName = sessionStorage.getItem("bankName");
+    const storedThresholdBalance = sessionStorage.getItem("thresholdBalance");
 
-    const thresholdBalance = prompt("Enter the Threshold Balance:");
-    const amountToInvest = prompt("Enter the Amount to Invest:");
-
-    if (thresholdBalance && amountToInvest) {
-      navigate("/investment-dashboard", {
-        state: {
-          balance,
-          thresholdBalance: parseFloat(thresholdBalance),
-          amountToInvest: parseFloat(amountToInvest),
-        },
-      });
+    if (storedBalance && storedBankName && storedThresholdBalance) {
+      setBalance(parseFloat(storedBalance));
+      setBankName(storedBankName);
+      setThresholdBalance(parseFloat(storedThresholdBalance));
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Store values in sessionStorage to persist them during the session.
+    if (balance && bankName && thresholdBalance) {
+      sessionStorage.setItem("balance", balance);
+      sessionStorage.setItem("bankName", bankName);
+      sessionStorage.setItem("thresholdBalance", thresholdBalance);
+    }
+  }, [balance, bankName, thresholdBalance]);
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen flex flex-col items-center">
@@ -55,19 +70,31 @@ const Dashboard = () => {
       <div className="mt-6 flex flex-col space-y-4">
         <button
           className="bg-green-500 text-white px-6 py-3 rounded-lg"
-          onClick={handleGradualInvestment}
+          onClick={() =>
+            navigate("/gradual-investment", {
+              state: { balance, thresholdBalance, amountToInvest },
+            })
+          }
         >
           Gradual Investment
         </button>
         <button
           className="bg-yellow-500 text-white px-6 py-3 rounded-lg"
-          onClick={() => navigate("/risk-adaptive-management")}
+          onClick={() =>
+            navigate("/risk-adaptive-management", {
+              state: { balance, thresholdBalance, amountToInvest },
+            })
+          }
         >
           Risk Adaptive Management
         </button>
         <button
           className="bg-purple-500 text-white px-6 py-3 rounded-lg"
-          onClick={() => navigate("/invisible-investment")}
+          onClick={() =>
+            navigate("/invisible-investment", {
+              state: { balance, thresholdBalance, amountToInvest },
+            })
+          }
         >
           Invisible Investment
         </button>
