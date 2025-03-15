@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { width: 60%; margin: auto; }
+        select, input, button { margin: 10px; padding: 10px; }
+        canvas { max-width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Interactive Investment Simulator</h1>
+    <div class="container">
+        <label for="investmentType">Select Investment Type:</label>
+        <select id="investmentType">
+            <option value="stocks">Stocks</option>
+            <option value="crypto">Crypto</option>
+            <option value="gold">Gold</option>
+            <option value="real_estate">Real Estate</option>
+            <option value="bonds">Bonds</option>
+            <option value="digital_gold">Digital Gold</option>
+        </select>
+        <input type="number" id="amount" placeholder="Enter Amount">
+        <button onclick="addInvestment()">Invest</button>
+        <h2>Portfolio</h2>
+        <ul id="portfolioList"></ul>
+        <canvas id="investmentChart"></canvas>
+    </div>
+    <script>
+        let portfolio = {};
+
+        function addInvestment() {
+            let type = document.getElementById("investmentType").value;
+            let amount = parseFloat(document.getElementById("amount").value);
+            if (!amount || amount <= 0) return alert("Enter a valid amount");
+            portfolio[type] = (portfolio[type] || 0) + amount;
+            updatePortfolio();
+        }
+
+        function updatePortfolio() {
+            let list = document.getElementById("portfolioList");
+            list.innerHTML = "";
+            Object.keys(portfolio).forEach(type => {
+                let li = document.createElement("li");
+                li.textContent = `${type.toUpperCase()}: $${portfolio[type]}`;
+                list.appendChild(li);
+            });
+            updateChart();
+        }
+
+        function updateChart() {
+            let ctx = document.getElementById("investmentChart").getContext("2d");
+            let labels = Object.keys(portfolio);
+            let data = Object.values(portfolio);
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{ data: data, backgroundColor: ["red", "blue", "gold", "green", "purple", "orange"] }]
+                }
+            });
+        }
+    </script>
+</body>
+</html>

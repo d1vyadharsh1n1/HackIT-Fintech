@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Virtual Investment Simulator</h1>
+        <p>Select an investment type and enter the amount to invest.</p>
+
+        <div class="investment-options">
+            {% for type, data in investment_types.items() %}
+            <div class="investment-card" onclick="invest('{{ type }}')">
+                <h2>{{ type.replace('_', ' ').title() }}</h2>
+                <p>{{ data.description }}</p>
+                <p><strong>Expected Return: {{ data.return_rate }}% per year</strong></p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2>📊 Your Investment Portfolio</h2>
+        <ul id="portfolio-list"></ul>
+
+        <canvas id="portfolio-chart"></canvas>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='chart.js') }}"></script>
+</body>
+</html>
+
