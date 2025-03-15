@@ -17,6 +17,26 @@ const Dashboard = () => {
     }
   };
 
+  const handleGradualInvestment = () => {
+    if (balance === 0) {
+      alert("Please integrate your bank account first.");
+      return;
+    }
+
+    const thresholdBalance = prompt("Enter the Threshold Balance:");
+    const amountToInvest = prompt("Enter the Amount to Invest:");
+
+    if (thresholdBalance && amountToInvest) {
+      navigate("/investment-dashboard", {
+        state: {
+          balance,
+          thresholdBalance: parseFloat(thresholdBalance),
+          amountToInvest: parseFloat(amountToInvest),
+        },
+      });
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen flex flex-col items-center">
       <h1 className="text-3xl font-semibold mb-4">Hey, [User's Name]!</h1>
@@ -35,7 +55,7 @@ const Dashboard = () => {
       <div className="mt-6 flex flex-col space-y-4">
         <button
           className="bg-green-500 text-white px-6 py-3 rounded-lg"
-          onClick={() => navigate("/gradual-investment")}
+          onClick={handleGradualInvestment}
         >
           Gradual Investment
         </button>

@@ -12,35 +12,33 @@ import Register from "./pages/Register";
 import RiskAssessment from "./pages/RiskAssessment";
 import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
+import InvestmentDashboard from "./pages/InvestmentDashboard"; // New Investment Page
 import "./index.css";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Check for authentication on component mount
+  // Check authentication on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token) {
-      setIsAuthenticated(true);
-
-      // Fetch user data
       axios
         .get("http://localhost:5000/api/user", {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then((res) => setUser(res.data))
-        .catch((err) => {
-          console.log(err);
-          setIsAuthenticated(false); // Invalidate session if token is not valid
+        .then((res) => {
+          setUser(res.data);
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
           localStorage.removeItem("token");
-        });
-
-      // Preload community posts
-      axios
-        .get("http://localhost:5000/api/community")
-        .catch((err) => console.log(err));
+          setIsAuthenticated(false);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, []);
 
@@ -56,18 +54,27 @@ const App = () => {
     localStorage.removeItem("token");
   };
 
+  if (loading) return <div className="text-center p-10">Loading...</div>;
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
+        {/* Navbar */}
         <nav className="p-4 bg-blue-600 text-white flex justify-between items-center">
           <div className="space-x-4">
-            {!isAuthenticated && <Link to="/">Login</Link>}
-            {!isAuthenticated && <Link to="/register">Register</Link>}
-            {isAuthenticated && <Link to="/dashboard">Dashboard</Link>}
-            {isAuthenticated && (
-              <Link to="/risk-assessment">Risk Assessment</Link>
+            {!isAuthenticated ? (
+              <>
+                <Link to="/">Login</Link>
+                <Link to="/register">Register</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/dashboard">Dashboard</Link>
+                <Link to="/risk-assessment">Risk Assessment</Link>
+                <Link to="/community">Community</Link>
+                <Link to="/investment-dashboard">Investments</Link>
+              </>
             )}
-            {isAuthenticated && <Link to="/community">Community</Link>}
           </div>
           {isAuthenticated && (
             <button onClick={handleLogout} className="hover:underline">
@@ -76,13 +83,14 @@ const App = () => {
           )}
         </nav>
 
+        {/* Routes */}
         <div className="p-4">
           <Routes>
             <Route
               path="/"
               element={
                 isAuthenticated ? (
-                  <Navigate to="/dashboard" />
+                  <Navigate to="/dashboard" replace />
                 ) : (
                   <Login onLogin={handleLogin} />
                 )
@@ -91,7 +99,11 @@ const App = () => {
             <Route
               path="/register"
               element={
-                isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Register />
+                )
               }
             />
             <Route
@@ -100,7 +112,7 @@ const App = () => {
                 isAuthenticated ? (
                   <Dashboard user={user} />
                 ) : (
-                  <Navigate to="/" />
+                  <Navigate to="/" replace />
                 )
               }
             />
@@ -110,13 +122,25 @@ const App = () => {
                 isAuthenticated ? (
                   <RiskAssessment user={user} />
                 ) : (
-                  <Navigate to="/" />
+                  <Navigate to="/" replace />
                 )
               }
             />
             <Route
               path="/community"
-              element={isAuthenticated ? <Community /> : <Navigate to="/" />}
+              element={
+                isAuthenticated ? <Community /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/investment-dashboard"
+              element={
+                isAuthenticated ? (
+                  <InvestmentDashboard user={user} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
             />
           </Routes>
         </div>

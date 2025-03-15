@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = ({ onLogin }) => {
@@ -8,25 +7,31 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
 
-    try {
-      const response = await axios.post("http://localhost:5000/api/login", {
-        email,
-        password,
-      });
+    // Get users from localStorage
+    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-      if (response.data.success) {
-        onLogin(); // Set authentication state in App.js
-        navigate("/dashboard"); // Redirect to dashboard on successful login
-      } else {
-        setError("Invalid credentials or user not registered.");
-      }
-    } catch (error) {
-      setError("User not found. Please register first.");
-      navigate("/register"); // Redirect to register if user doesn't exist
+    // Check if user exists
+    const user = users.find(
+      (user) => user.email === email && user.password === password
+    );
+
+    if (user) {
+      localStorage.setItem("token", email); // Store token (simple authentication)
+      onLogin(user, email); // Update state
+      navigate("/dashboard", { replace: true }); // Redirect to dashboard
+    } else {
+      setError("User not found or incorrect credentials.");
     }
   };
 
