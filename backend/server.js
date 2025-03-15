@@ -1,14 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
-
 app.use(express.json());
+app.use(cors());
 
 // MongoDB Connection
 mongoose
@@ -17,54 +16,98 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.error("MongoDB Connection Error:", err));
+  .catch((err) => console.log(err));
 
 // User Schema
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+const UserSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  riskProfile: { type: String, default: "Medium" },
 });
-const User = mongoose.model("User", userSchema);
 
-// Register Route
-app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+const User = mongoose.model("User", UserSchema);
+
+// Register API
+app.post("/api/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
   try {
-    const newUser = new User({ email, password: hashedPassword });
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already registered" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, email, password: hashedPassword });
+
     await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
-  } catch (err) {
-    res.status(400).json({ error: "User already exists" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// Login Route
-app.post("/login", async (req, res) => {
+// Login API
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ error: "Invalid credentials" });
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
-
-  const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
-  res.status(200).json({ token });
-});
-
-// Protected Route Example
-app.get("/profile", (req, res) => {
-  const token = req.headers["authorization"];
-  if (!token) return res.status(401).json({ error: "No token provided" });
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    res.status(200).json({ message: "Access granted", userId: decoded.id });
-  } catch (err) {
-    res.status(401).json({ error: "Invalid token" });
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(400)
+        .json({ message: "User not found. Please register first." });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({
+      token,
+      user: {
+        name: user.name,
+        email: user.email,
+        riskProfile: user.riskProfile,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-);
+// Update Risk Profile API
+app.put("/api/risk-profile", async (req, res) => {
+  const { email, riskProfile } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { email },
+      { riskProfile },
+      { new: true }
+    );
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    res.json({
+      message: "Risk profile updated successfully",
+      riskProfile: user.riskProfile,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Community Posts API (Dummy Data)
+app.get("/api/community", async (req, res) => {
+  res.json([
+    { id: 1, user: "Alice", post: "I just started investing! Any tips?" },
+    { id: 2, user: "Bob", post: "Anyone using AI for stock predictions?" },
+  ]);
+});
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
