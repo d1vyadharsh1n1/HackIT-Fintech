@@ -50,7 +50,7 @@ InvestEase offers an innovative approach to investing with the following feature
 
 4. Run the application:  
    ```bash
-   npm start
+   npm run dev
    ```
 
 ## Contributing  
